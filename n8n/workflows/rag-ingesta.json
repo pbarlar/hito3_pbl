@@ -1,0 +1,31 @@
+{
+  "name": "RAG - Ingesta de Documentos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ingesta",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Ingesta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [ 250, 300 ]
+    },
+    {
+      "parameters": {
+        "content": "## Workflow 1: Ingesta de Documentos\n1. Webhook (Recibe archivo)\n2. Text Extraction / Read File\n3. Chunking (Split in Batches de ~500 palabras, overlap 50)\n4. Ollama (Generar Embeddings)\n5. Qdrant (Subir Vectores)\n6. PostgreSQL (Guardar Metadatos del Documento)"
+      },
+      "id": "2",
+      "name": "Instrucciones",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [ 200, 100 ]
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {}
+}

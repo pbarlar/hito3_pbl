@@ -1,0 +1,31 @@
+{
+  "name": "RAG - Consultas",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "consulta-rag",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Consulta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [ 250, 300 ]
+    },
+    {
+      "parameters": {
+        "content": "## Workflow 2: Consultas RAG\n1. Webhook (Recibe pregunta)\n2. Ollama (Genera Embedding de la pregunta)\n3. Qdrant (Busca chunks similares)\n4. Context Merge (Agrupa texto recuperado)\n5. Ollama (Genera respuesta usando pregunta + contexto)\n6. PostgreSQL (Guarda consulta y respuesta)"
+      },
+      "id": "2",
+      "name": "Instrucciones",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [ 200, 100 ]
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {}
+}
