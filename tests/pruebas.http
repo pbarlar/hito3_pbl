@@ -1,0 +1,44 @@
+### PROBANDO APIs PÚBLICAS PARA EL CHATBOT ###
+
+# 🌤️ OpenMeteo - Clima mundial
+GET https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m
+
+###
+# 🌍 REST Countries - Info geográfica
+GET https://restcountries.com/v3.1/name/spain
+
+###
+# 📚 Wikipedia API - Resúmenes
+GET https://es.wikipedia.org/api/rest_v1/page/summary/Madrid
+
+###
+# 😄 JokeAPI - Chistes
+GET https://v2.jokeapi.dev/joke/Programming?lang=es
+
+
+### PROBANDO ENDPOINTS LOCALES DE N8N (Ejemplos) ###
+# Poner aquí la URL del webhook de n8n para ingesta
+POST http://localhost:5678/webhook/ingesta
+Content-Type: application/json
+
+{
+    "document_url": "https://ejemplo.com/doc.pdf"
+}
+
+###
+# Poner aquí la URL del webhook de n8n para RAG
+POST http://localhost:5678/webhook/consulta-rag
+Content-Type: application/json
+
+{
+    "pregunta": "¿De qué trata el documento?"
+}
+
+###
+# Poner aquí la URL del webhook de n8n para el Chatbot
+POST http://localhost:5678/webhook/chatbot
+Content-Type: application/json
+
+{
+    "mensaje": "Dime un chiste de programación"
+}
