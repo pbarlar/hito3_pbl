@@ -18,27 +18,15 @@ GET https://v2.jokeapi.dev/joke/Programming?lang=es
 
 ### PROBANDO ENDPOINTS LOCALES DE N8N (Ejemplos) ###
 # Poner aquí la URL del webhook de n8n para ingesta
-POST http://localhost:5678/webhook/ingesta
-Content-Type: application/json
+curl -X POST http://localhost:5678/webhook-test/upload-document \
+     -F "file=@manual_n8n_rag.txt"
 
-{
-    "document_url": "https://ejemplo.com/doc.pdf"
-}
+
 
 ###
-# Poner aquí la URL del webhook de n8n para RAG
-POST http://localhost:5678/webhook/consulta-rag
-Content-Type: application/json
+# Poner aquí la URL del webhook de n8n para el Chatbot (Producción)
+curl -X POST http://localhost:5678/webhook-test/pregunta \
+     -H "Content-Type: application/json" \
+     -d '{"pregunta": "¿Qué modelo de embeddings utiliza este sistema y cuántas palabras tiene cada fragmento?"}'
 
-{
-    "pregunta": "¿De qué trata el documento?"
-}
 
-###
-# Poner aquí la URL del webhook de n8n para el Chatbot
-POST http://localhost:5678/webhook/chatbot
-Content-Type: application/json
-
-{
-    "mensaje": "Dime un chiste de programación"
-}

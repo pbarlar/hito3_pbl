@@ -1,31 +1,153 @@
 {
-  "name": "RAG - Consultas",
+  "name": "Consulta_RAG_Ollama_Qdrant",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "consulta-rag",
+        "path": "pregunta",
+        "responseMode": "lastNode",
         "options": {}
       },
-      "id": "1",
-      "name": "Webhook Consulta",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [ 250, 300 ]
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "webhook_1",
+      "name": "Webhook"
     },
     {
       "parameters": {
-        "content": "## Workflow 2: Consultas RAG\n1. Webhook (Recibe pregunta)\n2. Ollama (Genera Embedding de la pregunta)\n3. Qdrant (Busca chunks similares)\n4. Context Merge (Agrupa texto recuperado)\n5. Ollama (Genera respuesta usando pregunta + contexto)\n6. PostgreSQL (Guarda consulta y respuesta)"
+        "method": "POST",
+        "url": "http://ollama:11434/api/embeddings",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "nomic-embed-text"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.body.pregunta }}"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "2",
-      "name": "Instrucciones",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [ 200, 100 ]
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [220, 0],
+      "id": "ollama_embedding",
+      "name": "Ollama Embedding"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://qdrant:6333/collections/document_chunks/points/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"vector\": {{ JSON.stringify($json.embedding) }},\n  \"limit\": 3,\n  \"with_payload\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [440, 0],
+      "id": "qdrant_search",
+      "name": "Qdrant Search"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.result;\nconst context = results.map(r => r.payload.text).join(\"\\n\\n---\\n\\n\");\n\nreturn {\n  context,\n  pregunta: $('Webhook').item.json.body.pregunta\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0],
+      "id": "format_context",
+      "name": "Format Context"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3"
+            },
+            {
+              "name": "prompt",
+              "value": "=Contexto: {{ $json.context }}\n---\nPregunta: {{ $json.pregunta }}\n---\nRespuesta corta y precisa basada SOLO en el contexto proporcionado:"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [880, 0],
+      "id": "ollama_generate",
+      "name": "Ollama Generate"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "consultas",
+          "mode": "list",
+          "cachedResultName": "consultas"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pregunta": "={{ $('Webhook').item.json.body.pregunta }}",
+            "respuesta": "={{ $json.response }}",
+            "fecha": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [1100, 0],
+      "id": "postgres_log",
+      "name": "Log to Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "hdVAHRhggxSl0z7U",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
-  "pinData": {},
-  "connections": {},
-  "active": false,
-  "settings": {}
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Ollama Embedding", "type": "main", "index": 0 }]]
+    },
+    "Ollama Embedding": {
+      "main": [[{ "node": "Qdrant Search", "type": "main", "index": 0 }]]
+    },
+    "Qdrant Search": {
+      "main": [[{ "node": "Format Context", "type": "main", "index": 0 }]]
+    },
+    "Format Context": {
+      "main": [[{ "node": "Ollama Generate", "type": "main", "index": 0 }]]
+    },
+    "Ollama Generate": {
+      "main": [[{ "node": "Log to Postgres", "type": "main", "index": 0 }]]
+    }
+  }
 }
