@@ -23,10 +23,13 @@ curl -X POST http://localhost:5678/webhook-test/upload-document \
 
 
 
+
+
+
+
+
 ###
-# Poner aquí la URL del webhook de n8n para el Chatbot (Producción)
-curl -X POST http://localhost:5678/webhook-test/pregunta \
+# Poner aquí la URL del webhook de n8n para el Chatbot (Producción)curl -X POST http://localhost:5678/webhook-test/chatbot \
+     curl -X POST http://localhost:5678/webhook-test/chatbot \
      -H "Content-Type: application/json" \
-     -d '{"pregunta": "¿Qué modelo de embeddings utiliza este sistema y cuántas palabras tiene cada fragmento?"}'
-
-
+     -d '{"message": "¿Qué tiempo hace en Madrid ahora mismo?"}'
