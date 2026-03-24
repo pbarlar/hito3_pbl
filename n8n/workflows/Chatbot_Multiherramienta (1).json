@@ -1,0 +1,349 @@
+{
+  "name": "Chatbot_Multiherramienta",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "8670efca-0e11-4148-90a5-b51d7e9ac53d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        128
+      ],
+      "webhookId": "a0d0e61b-5f19-41d0-bdf3-03e6890ac427"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.response.toLowerCase().trim() }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "contains",
+              "value2": "clima",
+              "outputKey": "0"
+            },
+            {
+              "operation": "contains",
+              "value2": "pais",
+              "outputKey": "1"
+            },
+            {
+              "operation": "contains",
+              "value2": "wikipedia",
+              "outputKey": "2"
+            },
+            {
+              "operation": "contains",
+              "value2": "chiste",
+              "outputKey": "3"
+            }
+          ]
+        }
+      },
+      "id": "eceb1bdb-df75-4562-8f37-e34d5bb1a9cd",
+      "name": "Switch Tool",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m",
+        "options": {}
+      },
+      "id": "1b69d87e-335d-4e75-9345-3ee6ce5dc3bb",
+      "name": "Weather API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        128,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://restcountries.com/v3.1/name/spain",
+        "options": {}
+      },
+      "id": "6fe8de9e-035b-41c0-87b4-dd3ff7a02aee",
+      "name": "Country API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        128,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://es.wikipedia.org/api/rest_v1/page/summary/Madrid",
+        "options": {}
+      },
+      "id": "208d13a0-4f06-44fc-9704-666dacaba255",
+      "name": "Wikipedia API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        128,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://v2.jokeapi.dev/joke/Programming?lang=es",
+        "options": {}
+      },
+      "id": "33997978-a42b-4f8a-9493-67c08db6629f",
+      "name": "Joke API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        128,
+        384
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "62d3a18a-7d46-4207-94ca-c84a1c0bf6ba",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        384,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n{\n  \"model\": \"llama3\",\n  \"prompt\": `Responde de forma natural. Pregunta: ${ $('Webhook').item.json.body.message }. Datos: ${ JSON.stringify($json) }`,\n  \"stream\": false\n}\n}}",
+        "options": {}
+      },
+      "id": "c7e6db76-f725-42aa-bc08-cc12f7086425",
+      "name": "Generate Answer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        592,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chatbot_conversaciones",
+          "mode": "list",
+          "cachedResultName": "chatbot_conversaciones"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "mensaje_usuario",
+              "value": "={{ $('Webhook').item.json.body.message }}"
+            },
+            {
+              "column": "respuesta_bot",
+              "value": "={{ $json.response }}"
+            },
+            {
+              "column": "intencion_detectada",
+              "value": "={{ $('Detecta intencion').item.json.response }}"
+            },
+            {
+              "column": "fecha",
+              "value": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e858c43b-9294-482c-a595-b03f95c3b308",
+      "name": "Save History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        784,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "hdVAHRhggxSl0z7U",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3\",\n  \"prompt\": \"Clasifica la intención del usuario en una sola palabra (clima, pais, wikipedia, chiste o general). Mensaje: {{$json.body.message}}\",\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "id": "ffabf6c8-e102-4f52-ad3a-fab34caead78",
+      "name": "Detecta intencion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -368,
+        128
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Detecta intencion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Tool": {
+      "main": [
+        [
+          {
+            "node": "Weather API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Country API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wikipedia API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Joke API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather API": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Country API": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia API": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Joke API": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Generate Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Answer": {
+      "main": [
+        [
+          {
+            "node": "Save History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detecta intencion": {
+      "main": [
+        [
+          {
+            "node": "Switch Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "53bab089-28ab-4bdf-80c0-2384ac379341",
+  "meta": {
+    "instanceId": "046ab924127beebc2a6ac199cb53caca898f316c28d80263b1da11e2adc4b791"
+  },
+  "id": "IVPvwVE4V7LIYgGy",
+  "tags": []
+}

@@ -1,0 +1,4 @@
+n8n es una herramienta de automatización de workflows.
+Ollama permite ejecutar modelos de lenguaje localmente.
+Qdrant es una base de datos vectorial usada en sistemas RAG.
+Este es un documento de prueba pequeño.

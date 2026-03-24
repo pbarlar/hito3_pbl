@@ -1,0 +1,35 @@
+### PROBANDO APIs PÚBLICAS PARA EL CHATBOT ###
+
+# 🌤️ OpenMeteo - Clima mundial
+GET https://api.open-meteo.com/v1/forecast?latitude=40.4168&longitude=-3.7038&current=temperature_2m
+
+###
+# 🌍 REST Countries - Info geográfica
+GET https://restcountries.com/v3.1/name/spain
+
+###
+# 📚 Wikipedia API - Resúmenes
+GET https://es.wikipedia.org/api/rest_v1/page/summary/Madrid
+
+###
+# 😄 JokeAPI - Chistes
+GET https://v2.jokeapi.dev/joke/Programming?lang=es
+
+
+### PROBANDO ENDPOINTS LOCALES DE N8N (Ejemplos) ###
+# Poner aquí la URL del webhook de n8n para ingesta
+curl -X POST http://localhost:5678/webhook-test/upload-document \
+     -F "file=@manual_n8n_rag.txt"
+
+
+
+
+
+
+
+
+###
+# Poner aquí la URL del webhook de n8n para el Chatbot (Producción)curl -X POST http://localhost:5678/webhook-test/chatbot \
+     curl -X POST http://localhost:5678/webhook-test/chatbot \
+     -H "Content-Type: application/json" \
+     -d '{"message": "¿Qué tiempo hace en Madrid ahora mismo?"}'
